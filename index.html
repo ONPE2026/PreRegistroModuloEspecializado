@@ -743,13 +743,17 @@
       tipoDocumento.addEventListener('change', () => limpiarError(document.getElementById('campoTipoDocumento')));
 
       numeroDocumento.addEventListener('input', () => {
-        const tipo = obtenerTipoInstitucionSeleccionado();
-        if (tipo === 'mision_observacion') {
+        if (tipoDocumento.value && tipoDocumento.value !== 'dni_cedula') {
           numeroDocumento.value = numeroDocumento.value.replace(/[^a-zA-Z0-9]/g, '').slice(0, 15).toUpperCase();
         } else {
           numeroDocumento.value = soloDigitos(numeroDocumento.value).slice(0, 15);
         }
         limpiarError(document.getElementById('campoNumeroDocumento'));
+      });
+
+      tipoDocumento.addEventListener('change', () => {
+        numeroDocumento.setAttribute('inputmode', tipoDocumento.value && tipoDocumento.value !== 'dni_cedula' ? 'text' : 'numeric');
+        numeroDocumento.dispatchEvent(new Event('input'));
       });
 
       [nombres, apellidos].forEach((input) => {
@@ -1022,7 +1026,7 @@
 
       if (!docVal) {
         errores.push({ campo: document.getElementById('campoNumeroDocumento'), mensaje: 'Ingrese el número de documento de identidad.' });
-      } else if (tipo === 'mision_observacion') {
+      } else if (tipoDocumento.value && tipoDocumento.value !== 'dni_cedula') {
         if (!/^[a-zA-Z0-9]{6,15}$/.test(docVal)) errores.push({ campo: document.getElementById('campoNumeroDocumento'), mensaje: 'Ingrese entre 6 y 15 caracteres (letras y/o números).' });
       } else {
         const docDigitos = soloDigitos(docVal);
@@ -1137,7 +1141,7 @@
         tipoDocumentoLabel: tipoDocumento.options[tipoDocumento.selectedIndex]
           ? tipoDocumento.options[tipoDocumento.selectedIndex].textContent.toUpperCase()
           : '',
-        numeroDocumento: tipo === 'mision_observacion' ? docVal : soloDigitos(numeroDocumento.value),
+        numeroDocumento: (tipoDocumento.value && tipoDocumento.value !== 'dni_cedula') ? docVal : soloDigitos(numeroDocumento.value),
         nombres: valorLimpio(nombres.value).toUpperCase(),
         apellidos: valorLimpio(apellidos.value).toUpperCase(),
         nombreCompleto: valorLimpio(nombres.value).toUpperCase() + ' ' + valorLimpio(apellidos.value).toUpperCase(),
