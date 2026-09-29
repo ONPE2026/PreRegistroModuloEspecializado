@@ -183,6 +183,39 @@
       font-weight: bold;
     }
 
+    .aviso-tratamiento-datos {
+      margin-top: 15px;
+      padding: 14px 16px;
+      border: 1px solid var(--onpe-borde-error);
+      border-radius: 6px;
+      background-color: var(--onpe-fondo-error);
+      color: var(--onpe-texto-error);
+    }
+
+    .aviso-tratamiento-datos p {
+      margin: 0 0 10px 0;
+      font-weight: bold;
+    }
+
+    .aviso-tratamiento-datos p:last-child {
+      margin-bottom: 0;
+    }
+
+    .boton-descarga-pdf {
+      display: inline-block;
+      padding: 10px 16px;
+      font-size: 0.95rem;
+      font-weight: bold;
+      text-decoration: none;
+      background-color: var(--onpe-azul);
+      color: #ffffff;
+      border-radius: 4px;
+    }
+
+    .boton-descarga-pdf:hover {
+      opacity: 0.92;
+    }
+
     .telefono-wrap {
       display: flex;
       align-items: center;
@@ -369,6 +402,13 @@
     />
 
     <p class="texto-obligatorio">Todas las preguntas son obligatorias.</p>
+
+    <div class="aviso-tratamiento-datos">
+      <p>Para poder continuar con su registro debe descargar el documento PDF, firmarlo y enviarlo al correo <a href="mailto:informes4@onpe.gob.pe" style="color:inherit;">informes4@onpe.gob.pe</a>. Sin el documento de autorización de tratamiento de datos personales firmado no se podrá realizar su registro a la plataforma.</p>
+      <a class="boton-descarga-pdf" href="tratamiento_datos.pdf" target="_blank" rel="noopener" download>
+        Descargar documento de tratamiento de datos personales (PDF)
+      </a>
+    </div>
 
     <form id="formRegistro" novalidate autocomplete="off">
       <div style="display:none;">
