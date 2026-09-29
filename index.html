@@ -58,6 +58,7 @@
     select,
     input[type="text"],
     input[type="email"],
+    input[type="file"],
     button {
       padding: 8px 10px;
       margin-top: 5px;
@@ -327,6 +328,7 @@
       select,
       input[type="text"],
       input[type="email"],
+      input[type="file"],
       button {
         width: 100%;
         min-width: 0;
@@ -404,7 +406,7 @@
     <p class="texto-obligatorio">Todas las preguntas son obligatorias.</p>
 
     <div class="aviso-tratamiento-datos">
-      <p>Para poder continuar con su registro debe descargar el documento PDF, firmarlo y enviarlo al correo <a href="mailto:informes4@onpe.gob.pe" style="color:inherit;">informes4@onpe.gob.pe</a>. Sin el documento de autorización de tratamiento de datos personales firmado no se podrá realizar su registro a la plataforma.</p>
+      <p>Para poder continuar con su registro debe descargar el siguiente documento y firmarlo. Al final de este formulario se le pedirá adjuntar el PDF firmado: sin el documento de autorización de tratamiento de datos personales firmado no se podrá completar su registro.</p>
       <a class="boton-descarga-pdf" href="tratamiento_datos.pdf" target="_blank" rel="noopener" download>
         Descargar documento de tratamiento de datos personales (PDF)
       </a>
@@ -542,6 +544,12 @@
           <div class="field-error"></div>
         </div>
 
+        <div class="campo" id="campoDocumentoFirmado">
+          <label for="documentoFirmado">Adjunte el documento de tratamiento de datos personales firmado (PDF) <span class="req">*</span></label>
+          <input id="documentoFirmado" type="file" accept="application/pdf,.pdf" />
+          <div class="field-error"></div>
+        </div>
+
         <button id="btnEnviar" type="submit" class="boton">Enviar registro</button>
       </fieldset>
 
@@ -551,6 +559,7 @@
 
   <script>
     const API_URL = 'https://script.google.com/macros/s/AKfycbyLtvWXKEZNA_AchMo1bR1ti7D130yTl9kaNmVOdayx2LRg6wBraF_C07V8n77WeNCd/exec';
+    const TAMANO_MAX_PDF_BYTES = 8 * 1024 * 1024; // 8 MB
     const LISTAS_BASE_PATH = './';
 
     const JSON_FILES = {
@@ -607,6 +616,8 @@
     const correoDominio = document.getElementById('correoDominio');
     const confirmarCorreoUsuario = document.getElementById('confirmarCorreoUsuario');
     const confirmarCorreoDominio = document.getElementById('confirmarCorreoDominio');
+    const documentoFirmado = document.getElementById('documentoFirmado');
+    const btnEnviar = document.getElementById('btnEnviar');
 
     function formularioHabilitado() {
       // ERM2026: sin fecha de apertura (el registro esta disponible desde ya).
@@ -763,6 +774,10 @@
           limpiarError(input.closest('.campo'));
         });
         bloquearPegado(input);
+      });
+
+      documentoFirmado.addEventListener('change', () => {
+        limpiarError(document.getElementById('campoDocumentoFirmado'));
       });
 
       btnValidarInstitucion.addEventListener('click', validarInstitucionAntesDeContinuar);
@@ -989,6 +1004,7 @@
         limpiarError(document.getElementById('campoConfirmarCelular'));
         limpiarError(document.getElementById('campoCorreo'));
         limpiarError(document.getElementById('campoConfirmarCorreo'));
+        limpiarError(document.getElementById('campoDocumentoFirmado'));
       }
 
       const errores = [];
@@ -1031,6 +1047,18 @@
 
       if (!correo2) errores.push({ campo: document.getElementById('campoConfirmarCorreo'), mensaje: 'Confirme el correo electrónico.' });
       else if (correo !== correo2) errores.push({ campo: document.getElementById('campoConfirmarCorreo'), mensaje: 'El correo electrónico no coincide con la confirmación.' });
+
+      const archivoAdjunto = documentoFirmado.files[0];
+      if (!archivoAdjunto) {
+        errores.push({ campo: document.getElementById('campoDocumentoFirmado'), mensaje: 'Adjunte el documento de tratamiento de datos personales firmado en PDF.' });
+      } else {
+        const esPdf = archivoAdjunto.type === 'application/pdf' || /\.pdf$/i.test(archivoAdjunto.name);
+        if (!esPdf) {
+          errores.push({ campo: document.getElementById('campoDocumentoFirmado'), mensaje: 'El archivo debe ser un PDF.' });
+        } else if (archivoAdjunto.size > TAMANO_MAX_PDF_BYTES) {
+          errores.push({ campo: document.getElementById('campoDocumentoFirmado'), mensaje: 'El archivo no debe superar los 8 MB.' });
+        }
+      }
 
       if (modo === 'submit' && errores.length) {
         errores.forEach((error) => mostrarError(error.campo, error.mensaje));
@@ -1122,51 +1150,29 @@
         : (Date.now() + '-' + Math.random().toString(16).slice(2));
     }
 
-    function sendOnce(payload) {
-      const body = JSON.stringify(payload);
-
-      if (navigator.sendBeacon) {
-        try {
-          const ok = navigator.sendBeacon(
-            API_URL,
-            new Blob([body], { type: 'text/plain;charset=utf-8' })
-          );
-          if (ok) return;
-        } catch (_) {}
-      }
-
-      try {
-        fetch(API_URL, {
-          method: 'POST',
-          mode: 'no-cors',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body,
-          keepalive: true
-        });
-      } catch (_) {}
+    function leerArchivoComoBase64(archivo) {
+      return new Promise((resolve, reject) => {
+        const lector = new FileReader();
+        lector.onload = () => {
+          const resultado = String(lector.result || '');
+          const base64 = resultado.substring(resultado.indexOf(',') + 1);
+          resolve(base64);
+        };
+        lector.onerror = () => reject(lector.error || new Error('No se pudo leer el archivo adjunto.'));
+        lector.readAsDataURL(archivo);
+      });
     }
 
-    function sendWithInvisibleRetries(payload) {
-      const j1 = Math.floor(Math.random() * 600);
-      const j2 = Math.floor(Math.random() * 1200);
-
-      sendOnce(payload);
-      setTimeout(() => sendOnce(payload), 2000 + j1);
-      setTimeout(() => sendOnce(payload), 8000 + j2);
-
-      window.addEventListener('pagehide', () => sendOnce(payload), { once: true });
-    }
-
-    function mostrarPantallaFinalInmediata() {
+    function mostrarPantallaFinal() {
       document.body.innerHTML = `
         <div class="pantalla-final">
           <h1 style="color:#003366;">Gracias por completar el formulario</h1>
-          <p>Tu información se está enviando.</p>
+          <p>Su información y el documento adjunto fueron registrados correctamente.</p>
         </div>
       `;
     }
 
-    function enviarFormulario(event) {
+    async function enviarFormulario(event) {
       event.preventDefault();
 
       if (!state.institucionValidada) {
@@ -1183,14 +1189,39 @@
         return;
       }
 
-      const payload = {
-        submissionId: genId(),
-        sentAt: new Date().toISOString(),
-        ...construirPayload()
-      };
+      const archivo = documentoFirmado.files[0];
 
-      mostrarPantallaFinalInmediata();
-      sendWithInvisibleRetries(payload);
+      try {
+        btnEnviar.disabled = true;
+        mostrarMensajeGlobal('Enviando su registro, no cierre ni recargue esta ventana...', 'info');
+
+        const archivoBase64 = await leerArchivoComoBase64(archivo);
+
+        const payload = {
+          submissionId: genId(),
+          sentAt: new Date().toISOString(),
+          archivoBase64,
+          archivoNombre: archivo.name,
+          archivoTipo: archivo.type || 'application/pdf',
+          ...construirPayload()
+        };
+
+        const resp = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+          body: JSON.stringify(payload)
+        });
+
+        const data = await resp.json();
+
+        if (data.status !== 'ok') throw new Error(data.message || 'No se pudo completar el registro.');
+
+        mostrarPantallaFinal();
+      } catch (error) {
+        console.error(error);
+        mostrarMensajeGlobal('No se pudo enviar su registro. Verifique su conexión e intente nuevamente.', 'error');
+        btnEnviar.disabled = false;
+      }
     }
   </script>
 
