@@ -97,38 +97,6 @@
       display: block;
     }
 
-    .banner-placeholder {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 4px;
-      text-align: center;
-      padding: 28px 16px;
-      border: 2px dashed var(--onpe-azul);
-      border-radius: 8px;
-      background: var(--onpe-azul-claro);
-    }
-
-    .banner-placeholder-eyebrow {
-      font-size: 0.85rem;
-      font-weight: bold;
-      letter-spacing: 0.08em;
-      color: var(--onpe-azul);
-      text-transform: uppercase;
-    }
-
-    .banner-placeholder-title {
-      font-size: 1.3rem;
-      font-weight: bold;
-      color: var(--onpe-azul);
-    }
-
-    .banner-placeholder-sub {
-      font-size: 0.85rem;
-      color: var(--onpe-gris);
-    }
-
     .opciones-verticales label {
       display: block;
       margin-top: 6px;
@@ -379,11 +347,11 @@
 </head>
 <body>
   <div id="pantallaEspera">
-    <div class="banner banner-placeholder">
-      <span class="banner-placeholder-eyebrow">ERM 2026</span>
-      <span class="banner-placeholder-title">Prerregistro &mdash; M&oacute;dulo Especializado</span>
-      <span class="banner-placeholder-sub">Pr&oacute;ximamente el banner oficial</span>
-    </div>
+    <img
+      src="banner.jpg"
+      alt="Banner ONPE ERM 2026"
+      class="banner"
+    />
 
     <div class="pantalla-final">
       <p style="font-size: 1.1rem; font-weight: bold; color: #003366;">
@@ -394,11 +362,11 @@
 
   <div id="contenidoFormulario" class="seccion-oculta">
 
-    <div class="banner banner-placeholder">
-      <span class="banner-placeholder-eyebrow">ERM 2026</span>
-      <span class="banner-placeholder-title">Prerregistro &mdash; M&oacute;dulo Especializado</span>
-      <span class="banner-placeholder-sub">Pr&oacute;ximamente el banner oficial</span>
-    </div>
+    <img
+      src="banner.jpg"
+      alt="Banner ONPE ERM 2026"
+      class="banner"
+    />
 
     <p class="texto-obligatorio">Todas las preguntas son obligatorias.</p>
 
@@ -622,11 +590,7 @@
         pantallaEspera.classList.remove('seccion-oculta');
         contenidoFormulario.classList.add('seccion-oculta');
         pantallaEspera.innerHTML = `
-          <div class="banner banner-placeholder">
-            <span class="banner-placeholder-eyebrow">ERM 2026</span>
-            <span class="banner-placeholder-title">Prerregistro &mdash; M&oacute;dulo Especializado</span>
-            <span class="banner-placeholder-sub">Pr&oacute;ximamente el banner oficial</span>
-          </div>
+          <img src="banner.jpg" alt="Banner ONPE ERM 2026" class="banner" />
           <div class="pantalla-final">
             <h1 style="color:#003366;">Registro cerrado</h1>
             <p style="font-size:1.05rem; color:#4b5563;">El plazo de registro para el módulo especializado ha concluido.<br>Ya no se aceptan nuevos registros.</p>
