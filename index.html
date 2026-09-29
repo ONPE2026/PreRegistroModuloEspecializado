@@ -545,8 +545,8 @@
         </div>
 
         <div class="campo" id="campoDocumentoFirmado">
-          <label for="documentoFirmado">Adjunte el documento de tratamiento de datos personales firmado (PDF) <span class="req">*</span></label>
-          <input id="documentoFirmado" type="file" accept="application/pdf,.pdf" />
+          <label for="documentoFirmado">Adjunte el documento de tratamiento de datos personales firmado (PDF o imagen: JPG, PNG) <span class="req">*</span></label>
+          <input id="documentoFirmado" type="file" accept="application/pdf,.pdf,image/jpeg,image/png,.jpg,.jpeg,.png" />
           <div class="field-error"></div>
         </div>
 
@@ -559,7 +559,7 @@
 
   <script>
     const API_URL = 'https://script.google.com/macros/s/AKfycbxSfQ8sHDnshzC1Dyv7vsFnP67yel3JqZkobfqIaWFSPSFkKIg6oZeGlmsnVybqLC77sg/exec';
-    const TAMANO_MAX_PDF_BYTES = 8 * 1024 * 1024; // 8 MB
+    const TAMANO_MAX_PDF_BYTES = 8 * 1024 * 1024; // 8 MB (aplica a PDF o imagen adjunta)
     const LISTAS_BASE_PATH = './';
 
     const JSON_FILES = {
@@ -1050,11 +1050,13 @@
 
       const archivoAdjunto = documentoFirmado.files[0];
       if (!archivoAdjunto) {
-        errores.push({ campo: document.getElementById('campoDocumentoFirmado'), mensaje: 'Adjunte el documento de tratamiento de datos personales firmado en PDF.' });
+        errores.push({ campo: document.getElementById('campoDocumentoFirmado'), mensaje: 'Adjunte el documento de tratamiento de datos personales firmado (PDF o imagen).' });
       } else {
-        const esPdf = archivoAdjunto.type === 'application/pdf' || /\.pdf$/i.test(archivoAdjunto.name);
-        if (!esPdf) {
-          errores.push({ campo: document.getElementById('campoDocumentoFirmado'), mensaje: 'El archivo debe ser un PDF.' });
+        const tiposPermitidos = ['application/pdf', 'image/jpeg', 'image/png'];
+        const extensionesPermitidas = /\.(pdf|jpe?g|png)$/i;
+        const esValido = tiposPermitidos.indexOf(archivoAdjunto.type) !== -1 || extensionesPermitidas.test(archivoAdjunto.name);
+        if (!esValido) {
+          errores.push({ campo: document.getElementById('campoDocumentoFirmado'), mensaje: 'El archivo debe ser un PDF, JPG o PNG.' });
         } else if (archivoAdjunto.size > TAMANO_MAX_PDF_BYTES) {
           errores.push({ campo: document.getElementById('campoDocumentoFirmado'), mensaje: 'El archivo no debe superar los 8 MB.' });
         }
@@ -1202,7 +1204,7 @@
           sentAt: new Date().toISOString(),
           archivoBase64,
           archivoNombre: archivo.name,
-          archivoTipo: archivo.type || 'application/pdf',
+          archivoTipo: archivo.type || 'application/octet-stream',
           ...construirPayload()
         };
 
@@ -1226,18 +1228,16 @@
   </script>
 
   <div style="
-    position: fixed;
-    bottom: 0;
-    left: 0;
+    position: static;
     width: 100%;
     background-color: #003366;
     color: #ffffff;
     text-align: center;
-    padding: 10px 16px;
+    padding: 16px;
     font-family: Arial, sans-serif;
     font-size: 0.92rem;
-    z-index: 9999;
     box-shadow: 0 -2px 6px rgba(0,0,0,0.2);
+    margin-top: 24px;
   ">
     <strong>Los datos registrados en el presente formulario serán utilizados únicamente para el proceso de registro en el módulo especializado de la web de resultados.</strong>
     <br>
