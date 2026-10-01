@@ -81,40 +81,38 @@ function doGet(e) {
 }
 
 function manejarCheckInstitution(body) {
-  const lock = LockService.getScriptLock();
-  lock.waitLock(10000);
-  try {
-    const hoja = obtenerHoja();
-    const filas = hoja.getDataRange().getValues();
-    const encabezados = filas[0];
+  // Solo lectura: no se usa LockService (si otro envío con PDF tenía el candado,
+  // la validación se quedaba esperando). Además se leen únicamente las columnas
+  // necesarias (tipoInstitucion .. paisNombre) en vez de toda la hoja.
+  const hoja = obtenerHoja();
+  const ultimaFila = hoja.getLastRow();
+  if (ultimaFila < 2) return { status: 'available' };
 
-    const idxTipo = encabezados.indexOf('tipoInstitucion');
-    const idxEntidad = encabezados.indexOf('entidadNombre');
-    const idxPais = encabezados.indexOf('paisNombre');
+  const idxTipo = COLUMNAS.indexOf('tipoInstitucion');
+  const idxEntidad = COLUMNAS.indexOf('entidadNombre');
+  const idxPais = COLUMNAS.indexOf('paisNombre');
+  const primeraCol = idxTipo + 1;
+  const numCols = idxPais - idxTipo + 1;
 
-    const tipo = normalizar(body.tipoInstitucion);
-    const entidadNombre = normalizar(body.entidadNombre);
-    const paisNombre = normalizar(body.paisNombre);
+  const filas = hoja.getRange(2, primeraCol, ultimaFila - 1, numCols).getValues();
 
-    for (let i = 1; i < filas.length; i++) {
-      const fila = filas[i];
-      const mismoTipo = normalizar(fila[idxTipo]) === tipo;
-      const mismaEntidad = normalizar(fila[idxEntidad]) === entidadNombre;
+  const tipo = normalizar(body.tipoInstitucion);
+  const entidadNombre = normalizar(body.entidadNombre);
+  const paisNombre = normalizar(body.paisNombre);
 
-      if (!mismoTipo || !mismaEntidad) continue;
+  for (let i = 0; i < filas.length; i++) {
+    const fila = filas[i];
+    if (normalizar(fila[0]) !== tipo) continue;
+    if (normalizar(fila[idxEntidad - idxTipo]) !== entidadNombre) continue;
 
-      if (tipo === 'mision_observacion') {
-        const mismoPais = normalizar(fila[idxPais]) === paisNombre;
-        if (mismoPais) return { status: 'duplicate' };
-      } else {
-        return { status: 'duplicate' };
-      }
+    if (tipo === 'mision_observacion') {
+      if (normalizar(fila[idxPais - idxTipo]) === paisNombre) return { status: 'duplicate' };
+    } else {
+      return { status: 'duplicate' };
     }
-
-    return { status: 'available' };
-  } finally {
-    lock.releaseLock();
   }
+
+  return { status: 'available' };
 }
 
 function manejarSubmitRegistration(body) {

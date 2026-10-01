@@ -559,7 +559,7 @@
   </div>
 
   <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbwEQ70YMUK8aC7-__XWn2SGGFHheGOl2pXVLfdTvjTI0VRKf5Dk2IpzhZwzsnglWWmHMA/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbxroBuEewmoml19bRnt1Uu_mWMFm4v1C39oMouPJsdpT39CbEuaE9WL3QCy64ifsjEEpA/exec';
     const TAMANO_MAX_PDF_BYTES = 8 * 1024 * 1024; // 8 MB (aplica a PDF o imagen adjunta)
     const LISTAS_BASE_PATH = './';
 
@@ -1080,6 +1080,34 @@
       return { valido: errores.length === 0, errores };
     }
 
+    // Llama al backend con tiempo máximo (20 s) y hasta 3 intentos, para que la
+    // validación no se quede colgada si Apps Script tarda o falla una vez.
+    async function consultarRegistroConReintentos(payload, intentos = 3, timeoutMs = 20000) {
+      let ultimoError;
+      for (let i = 1; i <= intentos; i++) {
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), timeoutMs);
+        try {
+          if (i > 1) mostrarMensajeGlobal('El servidor tardó en responder. Reintentando (' + i + '/' + intentos + ')...', 'info');
+          const resp = await fetch(API_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'text/plain;charset=utf-8' },
+            body: JSON.stringify(payload),
+            signal: controller.signal
+          });
+          const data = await resp.json();
+          if (data.status === 'error') throw new Error(data.message || 'Error del servidor');
+          return data;
+        } catch (err) {
+          ultimoError = err;
+          console.warn('Intento ' + i + ' falló:', err);
+        } finally {
+          clearTimeout(timer);
+        }
+      }
+      throw ultimoError;
+    }
+
     async function validarInstitucionAntesDeContinuar() {
       ocultarMensajeGlobal();
       const validacion = validarParte1('submit');
@@ -1093,18 +1121,12 @@
         btnValidarInstitucion.disabled = true;
         mostrarMensajeGlobal('Validando si ya existe un registro...', 'info');
 
-        const resp = await fetch(API_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'text/plain;charset=utf-8' },
-          body: JSON.stringify({
-            action: 'checkInstitution',
-            tipoInstitucion: tipo,
-            entidadNombre,
-            paisNombre
-          })
+        const data = await consultarRegistroConReintentos({
+          action: 'checkInstitution',
+          tipoInstitucion: tipo,
+          entidadNombre,
+          paisNombre
         });
-
-        const data = await resp.json();
 
         if (data.status === 'duplicate') {
           const targetCampo = tipo === 'encuestadora_vigente'
