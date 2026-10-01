@@ -167,7 +167,7 @@ function construirNombreArchivo(body, numeroRespuesta) {
   const tipo = body.tipoInstitucion;
   let base;
 
-  if (tipo === 'organizacion_politica' || tipo === 'encuestadora_vigente') {
+  if (tipo === 'partido_nacional' || tipo === 'movimiento_regional' || tipo === 'encuestadora_vigente') {
     base = body.entidadNombre;
   }
 

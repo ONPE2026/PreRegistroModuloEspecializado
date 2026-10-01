@@ -426,7 +426,8 @@
           <label>Seleccione el tipo de institución o entidad que realiza el registro <span class="req">*</span></label>
           <div class="grupo-radios opciones-verticales">
             <label><input type="radio" name="tipoInstitucion" value="institucion_publica" /> Entidad del Estado</label>
-            <label><input type="radio" name="tipoInstitucion" value="organizacion_politica" /> Organización política</label>
+            <label><input type="radio" name="tipoInstitucion" value="partido_nacional" /> Partidos nacionales</label>
+            <label><input type="radio" name="tipoInstitucion" value="movimiento_regional" /> Movimientos regionales</label>
             <label><input type="radio" name="tipoInstitucion" value="mision_observacion" /> Misión de observación</label>
             <label><input type="radio" name="tipoInstitucion" value="encuestadora_vigente" /> Encuestadoras vigentes</label>
           </div>
@@ -558,30 +559,34 @@
   </div>
 
   <script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbzscDhCM1Kx6HIJw_Bo0VyS8wYE-LThXRoBjrZFdLkNuTGg0dQ1OuNPvZVnVF37vV3XFQ/exec';
+    const API_URL = 'https://script.google.com/macros/s/AKfycbwEQ70YMUK8aC7-__XWn2SGGFHheGOl2pXVLfdTvjTI0VRKf5Dk2IpzhZwzsnglWWmHMA/exec';
     const TAMANO_MAX_PDF_BYTES = 8 * 1024 * 1024; // 8 MB (aplica a PDF o imagen adjunta)
     const LISTAS_BASE_PATH = './';
 
     const JSON_FILES = {
       institucion_publica: 'instituciones_publicas.json',
-      organizacion_politica: 'organizaciones_politicas.json',
+      partido_nacional: 'partidos_nacionales.json',
+      movimiento_regional: 'movimientos_regionales.json',
       encuestadora_vigente: 'encuestadoras_vigentes.json',
       paises: 'paises.json'
     };
 
     const LABELS_ENTIDAD = {
       institucion_publica: 'Seleccione la entidad del Estado',
-      organizacion_politica: 'Seleccione la organización política'
+      partido_nacional: 'Seleccione el partido político o alianza nacional',
+      movimiento_regional: 'Seleccione el movimiento o alianza regional'
     };
 
     const PLACEHOLDERS_ENTIDAD = {
       institucion_publica: '-- Seleccione la entidad del Estado --',
-      organizacion_politica: '-- Seleccione la organización política --'
+      partido_nacional: '-- Seleccione el partido político o alianza nacional --',
+      movimiento_regional: '-- Seleccione el movimiento o alianza regional --'
     };
 
     const MAPA_TIPOS = {
       institucion_publica: 'ENTIDAD DEL ESTADO',
-      organizacion_politica: 'ORGANIZACIÓN POLÍTICA',
+      partido_nacional: 'PARTIDO NACIONAL',
+      movimiento_regional: 'MOVIMIENTO REGIONAL',
       mision_observacion: 'MISIÓN DE OBSERVACIÓN',
       encuestadora_vigente: 'ENCUESTADORAS VIGENTES'
     };
